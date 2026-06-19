@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@layer components {
+
+    /* Foundation Design: Reusable Component Classes */
+    .card-base {
+        @apply bg-white p-6 rounded-lg shadow-sm;
+    }
+
+    .heading-1 {
+        @apply mt-0 text-slate-900 text-2xl font-bold;
+    }
+
+    .text-body {
+        @apply text-slate-600 mt-2 text-base;
+    }
+
+    .input-field {
+        @apply px-4 py-2 border border-slate-300 rounded-md outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all font-sans text-slate-800 bg-white placeholder-slate-400;
+    }
+}
