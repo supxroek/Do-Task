@@ -1,10 +1,13 @@
+/* import font */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
 @import "tailwindcss";
 
 @layer components {
 
     /* Foundation Design: Reusable Component Classes */
     .card-base {
-        @apply bg-white p-6 rounded-lg shadow-sm;
+        @apply bg-white p-4;
     }
 
     .heading-1 {
