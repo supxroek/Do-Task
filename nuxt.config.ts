@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
+  runtimeConfig: {
+    // Server-side only config. Not exposed to the client
+    mongoURI: process.env.MONGODB_URI,
+  },
+
   modules: [
     "shadcn-nuxt",
     "nuxt-mongoose",
@@ -19,6 +24,7 @@ export default defineNuxtConfig({
       include: [
         "@vue/devtools-core",
         "@vue/devtools-kit",
+        "@vueuse/core",
         "class-variance-authority",
         "clsx",
         "dayjs", // CJS
@@ -27,6 +33,7 @@ export default defineNuxtConfig({
         "dayjs/plugin/utc", // CJS
         "reka-ui",
         "tailwind-merge",
+        "vee-validate",
       ],
     },
   },
