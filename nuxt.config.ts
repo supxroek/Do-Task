@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // Server-side only config. Not exposed to the client
-    mongoURI: process.env.MONGODB_URI,
+    mongoURI: process.env.NUXT_MONGOOSE_URI,
   },
 
   modules: [

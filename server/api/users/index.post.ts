@@ -1,6 +1,6 @@
 // server/api/users/index.post.ts (POST new user)
 
-import { connectToDatabase } from "~~/server/utils/mongodb";
+import { connectToDatabase } from "~~/server/config/mongodb";
 
 export default defineEventHandler(async (event) => {
   const { db } = await connectToDatabase();

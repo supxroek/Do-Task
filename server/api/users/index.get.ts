@@ -1,6 +1,6 @@
 // server/api/users/index.get.ts (GET all users)
 
-import { connectToDatabase } from "~~/server/utils/mongodb";
+import { connectToDatabase } from "~~/server/config/mongodb";
 
 export default defineEventHandler(async () => {
   const { db } = await connectToDatabase();
