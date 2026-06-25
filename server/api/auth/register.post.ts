@@ -1,40 +1,67 @@
 // server/api/auth/register.post.ts
 
-import { prisma } from "~~/server/utils/db";
+import { isValidDate, toISODate } from "~~/server/utils/date";
+import { prisma } from "../../utils/prisma";
+import bcrypt from "bcrypt";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { email, password, name, birthday, gender } = body;
 
-  // existing user check
-  const existingUser = await prisma.users.findUnique({
+  // Validate the input data
+  if (!email || !password) {
+    return {
+      status: 400,
+      message: "Email and password are required",
+    };
+  }
+
+  if (!isValidDate(birthday)) {
+    return {
+      status: 400,
+      message: "Invalid birthday format",
+    };
+  }
+
+  if (!["male", "female", "other"].includes(gender)) {
+    return {
+      status: 400,
+      message: "Invalid gender value. Must be 'male', 'female', or 'other'",
+    };
+  }
+
+  // Check if the user already exists
+  const existingUser = await prisma.user.findUnique({
     where: { email },
   });
 
   if (existingUser) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "User already exists",
-    });
+    return {
+      status: 400,
+      message: "User already exists",
+    };
   }
 
-  // create new user
-  const newUser = await prisma.users.create({
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  // Create a new user
+  const newUser = await prisma.user.create({
     data: {
       email,
-      password,
+      password: hashedPassword,
       name,
-      birthday: birthday ? new Date(birthday) : null,
+      birthday: toISODate(birthday),
       gender,
     },
   });
 
-  // return the new user without the password
-  const { password: _, ...safedata } = newUser;
+  // Return the newly created user (excluding the password)
+  const { password: _, ...safeData } = newUser;
 
   return {
-    statusCode: 201,
-    statusMessage: "User created successfully",
-    data: safedata,
+    status: 201,
+    message: "User registered successfully",
+    user: safeData,
   };
 });
