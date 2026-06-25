@@ -114,6 +114,7 @@ function isInvalid(field: any) {
                                     </Field>
                                 </template>
                             </form.Field>
+                            
                             <form.Field name="password">
                                 <template #default="{ field }">
                                     <Field :data-invalid="isInvalid(field)">
