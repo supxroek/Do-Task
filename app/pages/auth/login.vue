@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import bcrypt from 'bcrypt'
 import { useForm } from '@tanstack/vue-form'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
@@ -14,11 +13,14 @@ import {
     CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import Spinner from '~/components/ui/spinner/Spinner.vue'
 
 // Use the layout for the auth pages
 definePageMeta({
     layout: "auth-default",
 });
+
+const isLoading = ref(false)
 
 const formSchema = z.object({
     email: z.string().email({ message: 'Email is required' }),
@@ -34,22 +36,7 @@ const form = useForm({
         onSubmit: formSchema,
     },
     onSubmit: async ({ value }: { value: z.infer<typeof formSchema> }) => {
-        toast('You submitted the following values:', {
-            description: h(
-                'pre',
-                {
-                    class:
-                        'bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4',
-                },
-                h('code', JSON.stringify(value, null, 2)),
-            ),
-            position: 'bottom-right',
-            class: 'flex flex-col gap-2',
-            style: {
-                '--border-radius': 'calc(var(--radius)  + 4px)',
-            },
-        })
-
+        isLoading.value = true
         // Fetch the login API endpoint and handle the response
         const loginData = {
             email: value.email,
@@ -68,16 +55,24 @@ const form = useForm({
                 if (data.status === 200) {
                     // Handle successful login, e.g., redirect to dashboard
                     console.log('Login successful:', data)
+                    toast.success('Login successful!')
 
                     // Redirect to dashboard or another page
-                    useRouter().push('/dashboard')
+                    setTimeout(() => {
+                        useRouter().push('/dashboard')
+                    }, 3000)
                 } else {
                     // Handle login error, e.g., show error message
-                    console.error('Login failed:', data)
+                    // console.error('Login failed:', data)
+                    toast.error('Login failed: ' + data.message)
                 }
             })
             .catch((error) => {
                 console.error('Error during login:', error)
+                toast.error('An error occurred during login.')
+            })
+            .finally(() => {
+                isLoading.value = false
             })
     },
 })
@@ -144,6 +139,7 @@ function isInvalid(field: any) {
             </CardContent>
             <CardFooter class="flex flex-col gap-2">
                 <Button type="submit" form="form-tanstack-login" class="w-full cursor-pointer" variant="default">
+                    <Spinner v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
                     Login
                 </Button>
                 <div class="flex justify-center mt-2">
