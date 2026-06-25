@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Check, Circle, Dot } from '@lucide/vue'
 import { toTypedSchema } from '@vee-validate/zod'
-import { h, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
@@ -159,7 +158,7 @@ function handleBack(prevStep: () => void) {
             <CardContent class="min-w-0">
                 <Form v-slot="{ meta, values, validate }" as="" keep-values
                     :validation-schema="toTypedSchema(formSchema[stepIndex - 1]!)">
-                    <Stepper v-slot="{ isNextDisabled, isPrevDisabled, nextStep, prevStep, modelValue }"
+                    <Stepper v-slot="{ isNextDisabled, nextStep, prevStep, modelValue }"
                         v-model="stepIndex" class="block w-full min-w-0 overflow-x-hidden">
                         <form @submit="(e) => {
                             e.preventDefault()
