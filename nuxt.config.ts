@@ -1,14 +1,24 @@
 import tailwindcss from "@tailwindcss/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+  srcDir: "app/",
   css: ["./app/assets/css/tailwind.css"],
 
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), tsconfigPaths()],
     optimizeDeps: {
-      include: ["@vue/devtools-core", "@vue/devtools-kit"],
+      include: [
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "@vueuse/core",
+        "class-variance-authority",
+        "clsx",
+        "reka-ui",
+        "tailwind-merge",
+      ],
     },
   },
 
