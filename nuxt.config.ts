@@ -11,6 +11,8 @@ export default defineNuxtConfig({
     plugins: [tailwindcss(), tsconfigPaths()],
     optimizeDeps: {
       include: [
+        "@lucide/vue",
+        "@tanstack/vue-form",
         "@vue/devtools-core",
         "@vue/devtools-kit",
         "@vueuse/core",
@@ -18,6 +20,8 @@ export default defineNuxtConfig({
         "clsx",
         "reka-ui",
         "tailwind-merge",
+        "vue-sonner",
+        "zod",
       ],
     },
   },
