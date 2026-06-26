@@ -8,44 +8,46 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { email, password, name, birthday, gender } = body;
 
-  // Validate the input data
+  // 1. Validate the input data
   if (!email || !password) {
-    return {
+    throw createError({
       status: 400,
       message: "Email and password are required",
-    };
+    });
   }
 
+  // 2. Validate the birthday
   if (!isValidDate(birthday)) {
-    return {
+    throw createError({
       status: 400,
-      message: "Invalid birthday format",
-    };
+      message: "Invalid birthday format.",
+    });
   }
 
+  // 3. Validate the gender[male, female, other]
   if (!["male", "female", "other"].includes(gender)) {
-    return {
+    throw createError({
       status: 400,
       message: "Invalid gender value. Must be 'male', 'female', or 'other'",
-    };
+    });
   }
 
-  // Check if the user already exists
+  // 4. Check if the user already exists
   const existingUser = await prisma.user.findUnique({
     where: { email },
   });
 
   if (existingUser) {
-    return {
+    throw createError({
       status: 400,
       message: "User already exists",
-    };
+    });
   }
 
-  // Hash the password
+  // 5. Hash the password
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Create a new user
+  // 6. Create a new user
   const newUser = await prisma.user.create({
     data: {
       email,
@@ -56,12 +58,13 @@ export default defineEventHandler(async (event) => {
     },
   });
 
-  // Return the newly created user (excluding the password)
+  // 7. Return the newly created user (excluding the password)
   const { password: _, ...safeData } = newUser;
 
+  // 8. Return a success response
   return {
     status: 201,
-    message: "User registered successfully",
+    message: "The user has successfully registered.",
     user: safeData,
   };
 });

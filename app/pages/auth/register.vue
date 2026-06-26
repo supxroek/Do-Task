@@ -27,6 +27,7 @@ definePageMeta({
     layout: "auth-default",
 });
 
+const router = useRouter()
 const isLoading = ref(false)
 const isNextLoading = ref(false)
 const isBackLoading = ref(false)
@@ -73,8 +74,10 @@ const steps = [
     },
 ]
 
-function onSubmit(values: any) {
+async function onSubmit(values: any) {
     isLoading.value = true
+
+    // 1. Prepare the registration data
     const registrationData = {
         fullName: values.fullName,
         email: values.email,
@@ -83,61 +86,73 @@ function onSubmit(values: any) {
         gender: values.gender,
     }
 
-    // Fetch the registration API endpoint and handle the response
-    fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.status === 201) {
-                // Handle successful registration, e.g., redirect to login page
-                console.log('Registration successful:', data)
-                toast.success('Registration successful! Please log in.')
+    // 2. Send registration request to the server
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(registrationData),
+        })
+        
+        // 3. Parse the response JSON
+        const data = await response.json()
 
-                // Redirect to login page
-                setTimeout(() => {
-                    useRouter().push('/auth/login')
-                }, 3000)
-            } else {
-                // Handle registration error, e.g., show error message
-                console.error('Registration failed:', data)
-                toast.error('Registration failed: ' + data.message)
-            }
-        })
-        .catch((error) => {
-            console.error('Error during registration:', error)
-            toast.error('An error occurred during registration.')
-        })
-        .finally(() => {
+        if (response.ok) {
+            // Handle successful registration, e.g., redirect to login page
+            toast.success('Registration successful! Please login.')
+
+            // Redirect to login page
             setTimeout(() => {
-                isLoading.value = false
-            }, 500)
-            isNextLoading.value = false
-            isBackLoading.value = false
-        })
-}
-
-function handleNext(nextStep: () => void) {
-    isNextLoading.value = true
-    setTimeout(() => {
-        nextStep()
+                router.push('/auth/login')
+            }, 1000)
+        } else {
+            // Handle registration error, e.g., show error message
+            toast.error('Registration failed: ' + data.message)
+        }
+    } catch (error) {
+        console.error('Error during registration:', error)
+        toast.error('An error occurred during registration.')
+    } finally {
+        setTimeout(() => {
+            isLoading.value = false
+        }, 500)
         isNextLoading.value = false
-    }, 1000)
+        isBackLoading.value = false
+    }
 }
 
-function handleBack(prevStep: () => void) {
-    isBackLoading.value = true
-    if (stepIndex.value === 1) {
-        return navigateTo('/auth/login', { replace: true })
+async function handleNext(validate: () => Promise<any>, nextStep: () => void) {
+    isNextLoading.value = true
+
+    try {
+        const result = await validate()
+        const valid = result && typeof result === 'object' ? result.valid : !!result
+
+        if (!valid) return
+
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        nextStep()
+    } finally {
+        isNextLoading.value = false
     }
-    setTimeout(() => {
+}
+
+async function handleBack(prevStep: () => void) {
+    isBackLoading.value = true
+
+    try {
+        if (stepIndex.value === 1) {
+            await navigateTo('/auth/login', { replace: true })
+            return
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 500))
         prevStep()
+    } finally {
         isBackLoading.value = false
-    }, 1000)
+    }
 }
 </script>
 
@@ -158,12 +173,13 @@ function handleBack(prevStep: () => void) {
             <CardContent class="min-w-0">
                 <Form v-slot="{ meta, values, validate }" as="" keep-values
                     :validation-schema="toTypedSchema(formSchema[stepIndex - 1]!)">
-                    <Stepper v-slot="{ isNextDisabled, nextStep, prevStep, modelValue }"
-                        v-model="stepIndex" class="block w-full min-w-0 overflow-x-hidden">
-                        <form @submit="(e) => {
-                            e.preventDefault()
-                            validate()
-                            if (stepIndex === steps.length && meta.valid) {
+                    <Stepper v-slot="{ isNextDisabled, nextStep, prevStep, modelValue }" v-model="stepIndex"
+                        class="block w-full min-w-0 overflow-x-hidden">
+                        <form @submit.prevent="async () => {
+                            const result = await validate()
+                            const valid = result && typeof result === 'object' ? result.valid : !!result
+
+                            if (stepIndex === steps.length && valid) {
                                 onSubmit(values)
                             }
                         }">
@@ -180,6 +196,7 @@ function handleBack(prevStep: () => void) {
                                             class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-6 h-0.5 rounded-full bg-black group-data-[state=completed]:bg-primary" />
                                         <StepperTrigger as-child>
                                             <Button
+                                                type="button"
                                                 :variant="state === 'completed' || state === 'active' ? 'default' : 'outline'"
                                                 size="icon" class="z-10 shrink-0 rounded-full"
                                                 :class="[state === 'active' && 'ring-2 ring-ring ring-offset-2 ring-offset-background']"
@@ -288,19 +305,21 @@ function handleBack(prevStep: () => void) {
                                 </template>
                             </div>
                             <div class="mt-4 flex items-center justify-between gap-3">
-                                <Button variant="outline" size="sm" class="cursor-pointer"
-                                    @click="handleBack(prevStep)">
+                                <Button type="button" variant="outline" size="sm" class="cursor-pointer"
+                                    :disabled="isBackLoading || isNextLoading || isLoading"
+                                    @click.prevent.stop="handleBack(prevStep)">
                                     <Spinner v-if="isBackLoading" class="mr-2 h-4 w-4 animate-spin" />
                                     Back
                                 </Button>
                                 <div class="flex items-center gap-3">
-                                    <Button v-if="stepIndex !== 3" :type="meta.valid ? 'button' : 'submit'"
-                                        :disabled="isNextDisabled" size="sm" class="cursor-pointer"
-                                        @click="meta.valid && handleNext(nextStep)">
+                                    <Button v-if="stepIndex !== 3" type="button"
+                                        :disabled="isNextDisabled || isNextLoading || isBackLoading || isLoading"
+                                        size="sm" class="cursor-pointer" @click="handleNext(validate, nextStep)">
                                         <Spinner v-if="isNextLoading" class="mr-2 h-4 w-4 animate-spin" />
                                         Next
                                     </Button>
-                                    <Button v-if="stepIndex === 3" size="sm" type="submit" class="cursor-pointer">
+                                    <Button v-if="stepIndex === 3" size="sm" type="submit" class="cursor-pointer"
+                                        :disabled="isLoading || isBackLoading || isNextLoading">
                                         <Spinner v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
                                         Submit
                                     </Button>

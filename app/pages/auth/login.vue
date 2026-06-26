@@ -20,6 +20,7 @@ definePageMeta({
     layout: "auth-default",
 });
 
+const router = useRouter()
 const isLoading = ref(false)
 
 const formSchema = z.object({
@@ -37,43 +38,43 @@ const form = useForm({
     },
     onSubmit: async ({ value }: { value: z.infer<typeof formSchema> }) => {
         isLoading.value = true
-        // Fetch the login API endpoint and handle the response
+
+        // 1. Prepare the login data
         const loginData = {
             email: value.email,
             password: value.password,
         }
 
-        await fetch('/api/auth/login', {
+        // 2. Send login request to the server
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(loginData),
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.status === 200) {
-                    // Handle successful login, e.g., redirect to dashboard
-                    console.log('Login successful:', data)
-                    toast.success('Login successful!')
 
-                    // Redirect to dashboard or another page
-                    setTimeout(() => {
-                        useRouter().push('/dashboard')
-                    }, 3000)
-                } else {
-                    // Handle login error, e.g., show error message
-                    // console.error('Login failed:', data)
-                    toast.error('Login failed: ' + data.message)
-                }
-            })
-            .catch((error) => {
-                console.error('Error during login:', error)
-                toast.error('An error occurred during login.')
-            })
-            .finally(() => {
-                isLoading.value = false
-            })
+        // 3. Parse the response JSON
+        const data = await response.json()
+        try {
+            if (response.ok) {
+                // Handle successful login, e.g., redirect to dashboard
+                toast.success('Login successful!')
+
+                // Redirect to dashboard or another page
+                setTimeout(() => {
+                    router.push('/dashboard')
+                }, 1000)
+            } else {
+                // Handle login error, e.g., show error message
+                toast.error('Login failed: ' + data.message)
+            }
+        } catch (error) {
+            console.error('Error during login:', error)
+            toast.error('An error occurred during login.')
+        } finally {
+            isLoading.value = false
+        }
     },
 })
 
@@ -114,7 +115,7 @@ function isInvalid(field: any) {
                                     </Field>
                                 </template>
                             </form.Field>
-                            
+
                             <form.Field name="password">
                                 <template #default="{ field }">
                                     <Field :data-invalid="isInvalid(field)">
