@@ -11,7 +11,7 @@
     "postinstall": "dotenvx run -- nuxt prepare"
   },
   "dependencies": {
-    "@lucide/vue": "^1.21.0",
+    "@lucide/vue": "^1.22.0",
     "@prisma/client": "6.19",
     "@tailwindcss/vite": "^4.3.1",
     "@tanstack/vue-form": "^1.33.0",

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import Sidebar from '~/components/sidebar.vue';
-
+import AppSidebar from '~/components/sidebar.vue';
 </script>
 
 <template>
-    <div>
-        <Navbar />
-        <Sidebar />
+    <AppSidebar>
         <slot />
-    </div>
+    </AppSidebar>
 </template>
