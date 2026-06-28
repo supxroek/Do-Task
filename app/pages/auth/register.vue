@@ -24,6 +24,7 @@ import { Spinner } from '~/components/ui/spinner'
 
 // Use the layout for the auth pages
 definePageMeta({
+    middleware: 'guest',
     layout: "auth-default",
 });
 

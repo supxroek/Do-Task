@@ -1,6 +1,16 @@
+<script setup lang="ts">
+import { useAuth } from '~/composables/useAuth'
+
+definePageMeta({
+    middleware: 'auth', // Redirect if not logged in
+});
+
+const auth = useAuth()
+</script>
+
 <template>
     <div>
         <h1>Dashboard</h1>
-        <p>Welcome to your dashboard!</p>
+        <p>Welcome {{ auth.user.value?.name || 'User' }}!</p>
     </div>
 </template>

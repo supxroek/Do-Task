@@ -3,11 +3,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "build": "dotenvx run -- nuxt build",
+    "dev": "dotenvx run -- nuxt dev",
+    "prisma:push": "dotenvx run -- npx prisma db push",
+    "generate": "dotenvx run -- nuxt generate",
+    "preview": "dotenvx run -- nuxt preview",
+    "postinstall": "dotenvx run -- nuxt prepare"
   },
   "dependencies": {
     "@lucide/vue": "^1.21.0",

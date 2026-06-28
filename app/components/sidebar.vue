@@ -15,6 +15,10 @@ import {
     SidebarRail,
     SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { LogOut } from '@lucide/vue';
+import { useAuth } from '~/composables/useAuth';
+
+const auth = useAuth();
 </script>
 
 <template>
@@ -53,6 +57,21 @@ import {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+
+            <!-- SidebarFooter -->
+            <SidebarFooter class="flex items-center justify-center">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton as-child>
+                            <Button @click="auth.logout" variant="ghost"
+                                class="w-full items-center justify-start cursor-pointer gap-2 px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+                                <LogOut class="size-4" />
+                                <span>Logout</span>
+                            </Button>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
             <SidebarFooter />
             <SidebarRail />
         </Sidebar>

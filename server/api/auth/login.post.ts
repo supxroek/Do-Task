@@ -1,23 +1,13 @@
 // server/api/auth/login.post.ts
-
-import "dotenv/config";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma } from "../../utils/prisma";
+import { issueAuthCookies, toPublicUser } from "../../utils/auth";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { email, password } = body;
 
-  // 1. Validate the input
-  if (!email || !password) {
-    throw createError({
-      status: 400,
-      message: "Email and password are required",
-    });
-  }
-
-  // 2. Check if the user exists in the database
+  // 1. Find user
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -25,37 +15,29 @@ export default defineEventHandler(async (event) => {
   });
 
   if (!user) {
-    throw createError({
-      status: 404,
-      message: "User not found",
-    });
-  }
-
-  // 3. Compare the provided password
-  if (!(await bcrypt.compare(password, user.password))) {
-    throw createError({
+    return {
+      success: false,
       status: 401,
-      message: "Invalid password",
-    });
+      message: "Email or password is incorrect",
+    };
   }
 
-  // 4. Create a cookie and token for the user
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.NUXT_JWT_SECRET!,
-    { expiresIn: "1h" },
-  );
+  // 2. Verify password
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    return {
+      success: false,
+      status: 401,
+      message: "Email or password is incorrect",
+    };
+  }
 
-  // 5. Set the cookie in the response
-  setCookie(event, "token", token, {
-    httpOnly: true,
-    secure: true,
-    maxAge: 60 * 60, // 1 hour
-  });
+  await issueAuthCookies(event, user);
 
-  // 6. Return a success response
   return {
+    success: true,
     status: 200,
     message: "Login successful",
+    user: toPublicUser(user),
   };
 });
